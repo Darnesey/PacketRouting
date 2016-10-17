@@ -79,9 +79,29 @@ class Host:
     # @param dst_addr: destination address for the packet
     # @param data_S: data being transmitted to the network layer
     def udt_send(self, dst_addr, data_S):
-        p = NetworkPacket(dst_addr, data_S)
-        self.out_intf_L[0].put(p.to_byte_S()) #send packets always enqueued successfully
-        print('%s: sending packet "%s"' % (self, p))
+        print("Sending packet... %s" % data_S)
+        # Should eventually update to check the max length the next link takes instead of using a magic number
+        data_strings = []
+        if len(data_S) > 50:
+            data_strings = self.data_split(data_S, 45)
+        else:
+            data_strings.append(data_S)
+        for data in data_strings:
+            p = NetworkPacket(dst_addr, data)
+            self.out_intf_L[0].put(p.to_byte_S()) #send packets always enqueued successfully
+            print('%s: sending packet "%s"' % (self, p))
+
+    def data_split(self, data_S, max_len):
+        data_strings = []
+        # chop data string until it meets the max size
+        while len(data_S) >= max_len:
+            data_strings.append(data_S[0 : max_len])
+            print("Data partial string = " + data_S[0 : max_len])
+            data_S = data_S[max_len : ]
+        #add remaining string
+        if len(data_S) > 0:
+            data_strings.append(data_S)
+        return data_strings
         
     ## receive packet from the network layer
     def udt_receive(self):

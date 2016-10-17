@@ -45,9 +45,13 @@ if __name__ == '__main__':
     
     
     #create some send events    
-    for i in range(3):
-        client.udt_send(2, 'Sample data %d' % i)
-    
+    # for i in range(3):
+    #     # Current packet length is len(data) + 5 (len of address)
+    #     client.udt_send(2, 'This message consists of a string of data that is eighty characters in length...')
+
+    # commented out above for loop because of constant repititious outputs
+    client.udt_send(2, 'This message consists of a string of data that is eighty characters in length...')
+
     
     #give the network sufficient time to transfer all packets before quitting
     sleep(simulation_time)
