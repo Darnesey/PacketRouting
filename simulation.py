@@ -50,7 +50,7 @@ if __name__ == '__main__':
     #     client.udt_send(2, 'This message consists of a string of data that is eighty characters in length...')
 
     # commented out above for loop because of constant repititious outputs
-    client.udt_send(2, 'This message consists of a string of data that is eighty characters in length...')
+    client.udt_send(2, 1, 'This message consists of a string of data that is eighty characters in length...')
 
     
     #give the network sufficient time to transfer all packets before quitting
