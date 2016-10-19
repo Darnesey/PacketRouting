@@ -77,20 +77,20 @@ class NetworkPacket:
         dst_addr = int(byte_S[start_index : end_index])
         start_index = end_index
         end_index += NetworkPacket.packet_id_L
-        packet_id = int(byte_S[start_index : end_index])
+        self.packet_id = int(byte_S[start_index : end_index])
         start_index = end_index
         end_index += NetworkPacket.frag_flag_L
-        frag_flag = int(byte_S[start_index : end_index])
+        self.frag_flag = int(byte_S[start_index : end_index])
         start_index = end_index
         end_index += NetworkPacket.packet_length_L
-        packet_length = int(byte_S[start_index : end_index])
+        self.packet_length = int(byte_S[start_index : end_index])
         start_index = end_index
         end_index += NetworkPacket.offset_L
-        offset = int(byte_S[start_index : end_index])
+        self.offset = int(byte_S[start_index : end_index])
         start_index = end_index
 
         data_S = byte_S[start_index : ]
-        return self(dst_addr, packet_id, frag_flag, packet_length, offset, data_S)
+        return self(dst_addr, self.packet_id, data_S)
     
 
     
@@ -117,7 +117,7 @@ class Host:
         # Should eventually update to check the max length the next link takes instead of using a magic number
         data_strings = []
         if len(data_S) > 50:
-            data_strings = self.data_split(data_S, 45)
+            data_strings = self.data_split(data_S, 30)
         else:
             data_strings.append(data_S)
         for data in data_strings:
