@@ -97,6 +97,7 @@ class NetworkPacket:
 
 ## Implements a network host for receiving and transmitting data
 class Host:
+    packet_count = 0
     
     ##@param addr: address of this node represented as an integer
     def __init__(self, addr):
@@ -112,7 +113,7 @@ class Host:
     ## create a packet and enqueue for transmission
     # @param dst_addr: destination address for the packet
     # @param data_S: data being transmitted to the network layer
-    def udt_send(self, dst_addr, packet_id, data_S):
+    def udt_send(self, dst_addr, data_S):
         print("Sending packet... %s" % data_S)
         # Should eventually update to check the max length the next link takes instead of using a magic number
         data_strings = []
@@ -121,9 +122,10 @@ class Host:
         else:
             data_strings.append(data_S)
         for data in data_strings:
-            p = NetworkPacket(dst_addr, packet_id, data)
+            p = NetworkPacket(dst_addr, self.packet_count, data)
             self.out_intf_L[0].put(p.to_byte_S()) #send packets always enqueued successfully
             print('%s: sending packet "%s"' % (self, p))
+        self.packet_count += 1
 
     def data_split(self, data_S, max_len):
         data_strings = []
