@@ -20,7 +20,7 @@ if __name__ == '__main__':
     object_L.append(client)
     server = network.Host(2)
     object_L.append(server)
-    router_a = network.Router(name='A', intf_count=1, max_queue_size=router_queue_size)
+    router_a = network.Router(name='A', intf_count=1, max_queue_size=router_queue_size, outgoing_l_mtu=30)
     object_L.append(router_a)
     
     #create a Link Layer to keep track of links between network nodes

@@ -46,6 +46,9 @@ class NetworkPacket:
     offset = 0
     offset_L = 5
 
+    data_S = ''
+    dst_addr = ''
+
     ##@param dst_addr: address of the destination host
     # @param data_S: packet payload
     def __init__(self, dst_addr, packet_id, data_S):
@@ -92,8 +95,11 @@ class NetworkPacket:
         data_S = byte_S[start_index : ]
         return self(dst_addr, self.packet_id, data_S)
     
+    def get_data_S(self):
+        return self.data_S
 
-    
+    def get_dst_addr(self):
+        return self.dst_addr    
 
 ## Implements a network host for receiving and transmitting data
 class Host:
@@ -167,12 +173,13 @@ class Router:
     ##@param name: friendly router name for debugging
     # @param intf_count: the number of input and output interfaces 
     # @param max_queue_size: max queue length (passed to Interface)
-    def __init__(self, name, intf_count, max_queue_size):
+    def __init__(self, name, intf_count, max_queue_size, outgoing_l_mtu):
         self.stop = False #for thread termination
         self.name = name
         #create a list of interfaces
         self.in_intf_L = [Interface(max_queue_size) for _ in range(intf_count)]
         self.out_intf_L = [Interface(max_queue_size) for _ in range(intf_count)]
+        self.outgoing_l_mtu = outgoing_l_mtu
 
     ## called when printing the object
     def __str__(self):
@@ -189,15 +196,31 @@ class Router:
                 #if packet exists make a forwarding decision
                 if pkt_S is not None:
                     p = NetworkPacket.from_byte_S(pkt_S) #parse a packet out
-
+                    data_S = p.data_S
+                    offset = 0
                     #break up our packet here if the outgoing link's mtu is too small
-
-
-                    # HERE you will need to implement a lookup into the 
-                    # forwarding table to find the appropriate outgoing interface
-                    # for now we assume the outgoing interface is also i
-                    self.out_intf_L[i].put(p.to_byte_S(), True)
-                    print('%s: forwarding packet "%s" from interface %d to %d' % (self, p, i, i))
+                    if len(p.to_byte_S()) > self.outgoing_l_mtu:
+                        print ("PACKET TOO BIG, mtu only "+str(self.outgoing_l_mtu))
+                        p.data_S = data_S[0:self.outgoing_l_mtu - 20]
+                        p.frag_flag = 1
+                        p.offset = offset
+                        print("SAM : "+p.to_byte_S()+"\n")
+                        while len(p.to_byte_S()) > self.outgoing_l_mtu:
+                            self.out_intf_L[i].put(p.to_byte_S(), True)
+                            data_S = data_S[self.outgoing_l_mtu - 20:]
+                            offset += outgoing_l_mtu - 20
+                            p.data_S = data_S[0:self.outgoing_l_mtu - 20]
+                            p.frag_flag = 1
+                            p.offset = offset 
+                        p.frag_flag = 0
+                        p.packet_length = len(data_S) + 20
+                        self.out_intf_L[i].put(p.to_byte_S(), True)
+                    else:
+                        # HERE you will need to implement a lookup into the 
+                        # forwarding table to find the appropriate outgoing interface
+                        # for now we assume the outgoing interface is also i
+                        self.out_intf_L[i].put(p.to_byte_S(), True)
+                        print('%s: forwarding packet "%s" from interface %d to %d' % (self, p, i, i))
             except queue.Full:
                 print('%s: packet "%s" lost on interface %d' % (self, p, i))
                 pass
