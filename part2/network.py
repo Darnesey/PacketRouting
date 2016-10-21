@@ -179,8 +179,11 @@ class Host:
                 self.receiving_byte_S += p.get_data_S()
                 p_final = NetworkPacket(p.get_dst_addr(), p.get_packet_id(), self.receiving_byte_S)
                 p_final.set_packet_length(20 + len(self.receiving_byte_S))
+                p_final.set_offset(0)
                 print('%s: received packet "%s"' % (self, p_final))
+                self.receiving_byte_S = ''
             else:
+                self.receiving_byte_S = ''
                 print('%s: received packet "%s"' % (self, pkt_S))
        
     ## thread target for the host to keep receiving data
