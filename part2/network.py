@@ -49,6 +49,15 @@ class NetworkPacket:
     data_S = ''
     dst_addr = ''
 
+    def set_frag_flag(self, frag_flag):
+        self.frag_flag = frag_flag
+    def set_packet_length(self, new_length):
+        self.packet_length = new_length
+    def set_offset(self, new_offset):
+        self.offset = new_offset
+    def set_data(self, new_data):
+        self.data_S = new_data
+
     ##@param dst_addr: address of the destination host
     # @param data_S: packet payload
     def __init__(self, dst_addr, packet_id, data_S):
@@ -100,6 +109,9 @@ class NetworkPacket:
 
     def get_dst_addr(self):
         return self.dst_addr    
+
+    def get_packet_id(self):
+        return self.packet_id
 
 ## Implements a network host for receiving and transmitting data
 class Host:
@@ -201,20 +213,27 @@ class Router:
                     #break up our packet here if the outgoing link's mtu is too small
                     if len(p.to_byte_S()) > self.outgoing_l_mtu:
                         print ("PACKET TOO BIG, mtu only "+str(self.outgoing_l_mtu))
-                        p.data_S = data_S[0:self.outgoing_l_mtu - 20]
-                        p.frag_flag = 1
-                        p.offset = offset
-                        print("SAM : "+p.to_byte_S()+"\n")
-                        while len(p.to_byte_S()) > self.outgoing_l_mtu:
-                            self.out_intf_L[i].put(p.to_byte_S(), True)
+                        p_new = NetworkPacket(p.get_dst_addr(), p.get_packet_id(), p.get_data_S())
+                        p_new.set_data(data_S[0:self.outgoing_l_mtu - 20])
+                        p_new.set_frag_flag(1)
+                        p_new.set_offset(offset)
+                        count = 0
+                        while len(data_S)+20 > self.outgoing_l_mtu:
+                            self.out_intf_L[i].put(p_new.to_byte_S(), True)
+                            print('%s: forwarding packet "%s" from interface %d to %d' % (self, p_new, i, i))
+                            p_new = NetworkPacket(p.get_dst_addr(), p.get_packet_id(), p.get_data_S())
                             data_S = data_S[self.outgoing_l_mtu - 20:]
-                            offset += outgoing_l_mtu - 20
-                            p.data_S = data_S[0:self.outgoing_l_mtu - 20]
-                            p.frag_flag = 1
-                            p.offset = offset 
-                        p.frag_flag = 0
-                        p.packet_length = len(data_S) + 20
-                        self.out_intf_L[i].put(p.to_byte_S(), True)
+                            offset += self.outgoing_l_mtu - 20
+                            p_new.set_data(data_S[0:self.outgoing_l_mtu - 20])
+                            p_new.set_frag_flag(1)
+                            p_new.set_offset(offset)
+                            if count > 10:
+                                break
+                            count+=1
+                        p_new.set_frag_flag(0)
+                        p_new.set_packet_length(len(data_S) + 20)
+                        self.out_intf_L[i].put(p_new.to_byte_S(), True)
+                        print('%s: forwarding packet "%s" from interface %d to %d' % (self, p_new, i, i))
                     else:
                         # HERE you will need to implement a lookup into the 
                         # forwarding table to find the appropriate outgoing interface
