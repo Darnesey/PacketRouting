@@ -106,17 +106,22 @@ class NetworkPacket:
     
     def get_data_S(self):
         return self.data_S
-
     def get_dst_addr(self):
         return self.dst_addr    
-
     def get_packet_id(self):
         return self.packet_id
+    def get_packet_frag_flag(self):
+        return self.frag_flag
+    def get_packet_offset(self):
+        return self.offset
+    def get_packet_length(self):
+        return self.packet_length
 
 ## Implements a network host for receiving and transmitting data
 class Host:
     packet_count = 0
-    
+    receiving_fragmented_packets = 0
+    receiving_byte_S = ''
     ##@param addr: address of this node represented as an integer
     def __init__(self, addr):
         self.addr = addr
@@ -161,10 +166,22 @@ class Host:
         
     ## receive packet from the network layer
     def udt_receive(self):
-        #reassemble the packets in here.
         pkt_S = self.in_intf_L[0].get()
         if pkt_S is not None:
-            print('%s: received packet "%s"' % (self, pkt_S))
+            p = NetworkPacket.from_byte_S(pkt_S)
+            if p.get_packet_frag_flag() == 1:
+                self.receiving_fragmented_packets = 1
+                self.receiving_byte_S += p.get_data_S()
+                print("Received fragmented packet, appending '"+p.get_data_S()+"' onto our string")
+            elif self.receiving_fragmented_packets == 1:
+                print("Received final fragmented packet")
+                self.receiving_fragmented_packets = 0
+                self.receiving_byte_S += p.get_data_S()
+                p_final = NetworkPacket(p.get_dst_addr(), p.get_packet_id(), self.receiving_byte_S)
+                p_final.set_packet_length(20 + len(self.receiving_byte_S))
+                print('%s: received packet "%s"' % (self, p_final))
+            else:
+                print('%s: received packet "%s"' % (self, pkt_S))
        
     ## thread target for the host to keep receiving data
     def run(self):
