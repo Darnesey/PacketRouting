@@ -251,7 +251,7 @@ class Router:
                         count = 0
                         while len(data_S)+25 > self.outgoing_l_mtu:
                             self.out_intf_L[out_going_interface].put(p_new.to_byte_S(), True)
-                            print('%s: forwarding packet "%s" from interface %d to %d' % (self, p_new, i, i))
+                            print('%s: forwarding packet "%s" from interface %d to %d' % (self, p_new, i, out_going_interface))
                             p_new = NetworkPacket(p.get_src_addr(), p.get_dst_addr(), p.get_packet_id(), p.get_data_S())
                             data_S = data_S[self.outgoing_l_mtu - 25:]
                             offset += self.outgoing_l_mtu - 25
@@ -264,10 +264,10 @@ class Router:
                         p_new.set_frag_flag(0)
                         p_new.set_packet_length(len(data_S) + 25)
                         self.out_intf_L[out_going_interface].put(p_new.to_byte_S(), True)
-                        print('%s: forwarding packet "%s" from interface %d to %d' % (self, p_new, i, i))
+                        print('%s: forwarding packet "%s" from interface %d to %d' % (self, p_new, i, out_going_interface))
                     else:
                         self.out_intf_L[out_going_interface].put(p.to_byte_S(), True)
-                        print('%s: forwarding packet "%s" from interface %d to %d' % (self, p, i, i))
+                        print('%s: forwarding packet "%s" from interface %d to %d' % (self, p, i, out_going_interface))
             except queue.Full:
                 print('%s: packet "%s" lost on interface %d' % (self, p, i))
                 pass
