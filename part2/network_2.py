@@ -173,7 +173,8 @@ class Host:
                 self.receiving_fragmented_packets = 1
                 self.receiving_byte_S += p.get_data_S()
                 print("Received fragmented packet, appending '"+p.get_data_S()+"' onto our string")
-            elif self.receiving_fragmented_packets == 1:
+                print("Current appendage: " + self.receiving_byte_S)
+            elif self.receiving_fragmented_packets == 1 and p.get_packet_frag_flag() == 0: #self.receiving_fragmented_packets == 1:
                 print("Received final fragmented packet")
                 self.receiving_fragmented_packets = 0
                 self.receiving_byte_S += p.get_data_S()

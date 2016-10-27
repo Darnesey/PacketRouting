@@ -3,49 +3,49 @@ Created on Oct 12, 2016
 
 @author: mwitt_000
 '''
-import network
-import link
+import network_3
+import link_3
 import threading
 from time import sleep
 
 ##configuration parameters
 router_queue_size = 0 #0 means unlimited
-simulation_time = 3 #give the network sufficient time to transfer all packets before quitting
+simulation_time = 2 #give the network sufficient time to transfer all packets before quitting
 
 if __name__ == '__main__':
     object_L = [] #keeps track of objects, so we can kill their threads
     
     #create network nodes
-    client_a = network.Host(1)
-    client_b = network.Host(2)
+    client_a = network_3.Host(1)
+    client_b = network_3.Host(2)
     object_L.append(client_a)
     object_L.append(client_b)
-    server = network.Host(3)
+    server = network_3.Host(3)
     object_L.append(server)
-    router_a = network.Router(name='A', intf_count=2, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 1})
-    router_b = network.Router(name='B', intf_count=1, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 0})
-    router_c = network.Router(name='C', intf_count=1, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 0})
-    router_d = network.Router(name='D', intf_count=2, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 0})
+    router_a = network_3.Router(name='A', intf_count=2, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 1})
+    router_b = network_3.Router(name='B', intf_count=1, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 0})
+    router_c = network_3.Router(name='C', intf_count=1, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 0})
+    router_d = network_3.Router(name='D', intf_count=2, max_queue_size=router_queue_size, outgoing_l_mtu=50, routing_table={1: 0, 2: 0})
     object_L.append(router_a)
     object_L.append(router_b)
     object_L.append(router_c)
     object_L.append(router_d)
     
     #create a Link Layer to keep track of links between network nodes
-    link_layer = link.LinkLayer()
+    link_layer = link_3.LinkLayer()
     object_L.append(link_layer)
     
     #add all the links
-    link_layer.add_link(link.Link(client_a, 0, router_a, 0, 50))
-    link_layer.add_link(link.Link(client_b, 0, router_a, 0, 50))
+    link_layer.add_link(link_3.Link(client_a, 0, router_a, 0, 50))
+    link_layer.add_link(link_3.Link(client_b, 0, router_a, 0, 50))
 
-    link_layer.add_link(link.Link(router_a, 0, router_b, 0, 50))
-    link_layer.add_link(link.Link(router_a, 1, router_c, 0, 50))
+    link_layer.add_link(link_3.Link(router_a, 0, router_b, 0, 50))
+    link_layer.add_link(link_3.Link(router_a, 1, router_c, 0, 50))
 
-    link_layer.add_link(link.Link(router_b, 0, router_d, 0, 50))
-    link_layer.add_link(link.Link(router_c, 0, router_d, 1, 50))
+    link_layer.add_link(link_3.Link(router_b, 0, router_d, 0, 50))
+    link_layer.add_link(link_3.Link(router_c, 0, router_d, 1, 50))
 
-    link_layer.add_link(link.Link(router_d, 0, server, 0, 50))
+    link_layer.add_link(link_3.Link(router_d, 0, server, 0, 50))
     
     
     #start all the objects
